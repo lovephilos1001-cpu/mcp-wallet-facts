@@ -1,0 +1,33 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "mcp-wallet-facts",
+	"main": "src/server.ts",
+	"compatibility_date": "2026-06-11",
+	"compatibility_flags": ["nodejs_compat"],
+	"observability": {
+		"enabled": true
+	},
+	"vars": {
+		// ★ 기존 x402-paid-gateway(marketbriefwire.com/paid/*)와 동일한 지갑 재사용 ★
+		"PAY_TO": "0x337a490a64f8b5276966b7ec44aab36c2983ab27",
+		"NETWORK": "eip155:8453" // Base 메인넷 (CAIP-2)
+		// ★★★ 2026-10-07 발견: x402.org/facilitator는 테스트넷 전용(메인넷 미지원) — 제거함 ★★★
+		// 메인넷 결제 검증/정산은 Coinbase CDP facilitator(api.cdp.coinbase.com)가 필요하고,
+		// 이건 CDP_API_KEY_ID/CDP_API_KEY_SECRET 인증이 필수임 (secret로 별도 등록, 아래 참고).
+		// 키 등록 전까지는 get_wallet_facts 호출 시 facilitator 인증 실패로 에러 반환됨(정상, 예상된 상태).
+	},
+	"durable_objects": {
+		"bindings": [
+			{
+				"class_name": "WalletFactsMCP",
+				"name": "WalletFactsMCP"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"new_sqlite_classes": ["WalletFactsMCP"],
+			"tag": "v1"
+		}
+	]
+}
