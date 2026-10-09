@@ -30,11 +30,30 @@ const CDP_FACILITATOR_URL = "https://api.cdp.coinbase.com/platform/v2/x402";
 const RPC_ENDPOINTS: Record<string, string> = {
 	base: "https://mainnet.base.org",
 	ethereum: "https://ethereum-rpc.publicnode.com",
+	polygon: "https://polygon-bor-rpc.publicnode.com",
+	arbitrum: "https://arb1.arbitrum.io/rpc",
+	optimism: "https://mainnet.optimism.io",
+	avalanche: "https://api.avax.network/ext/bc/C/rpc",
 };
 
+// 네이티브(Circle 발행) USDC만 사용 — 브릿지판(USDC.e)은 별도 토큰. 2026-10-09, 각 체인 공개
+// RPC로 eth_call(symbol()/decimals()) 직접 호출해서 "USDC"/6자리 확인 후 등록함(server.py와 동일 검증).
 const USDC_CONTRACTS: Record<string, string> = {
 	base: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
 	ethereum: "0xA0b86991c6218B36c1D19D4a2e9Eb0cE3606eB48",
+	polygon: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+	arbitrum: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+	optimism: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+	avalanche: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+};
+
+const NATIVE_SYMBOLS: Record<string, string> = {
+	base: "ETH",
+	ethereum: "ETH",
+	polygon: "POL",
+	arbitrum: "ETH",
+	optimism: "ETH",
+	avalanche: "AVAX",
 };
 
 const ADDRESS_RE = /^0x[0-9a-fA-F]{40}$/;
@@ -74,7 +93,7 @@ async function getWalletFacts(address: string, chain: string) {
 		address: addr,
 		chain,
 		native_balance: Number(BigInt(nativeHex)) / 1e18,
-		native_symbol: "ETH",
+		native_symbol: NATIVE_SYMBOLS[chain],
 		usdc_balance: Number(BigInt(usdcHex)) / 1e6,
 		tx_count: Number(BigInt(txCountHex)),
 		is_contract: hasCode && !isEip7702,
@@ -115,10 +134,19 @@ export class WalletFactsMCP extends McpAgent<Env> {
 			0.01,
 			{
 				address: z.string().describe("조회할 EVM 지갑 주소 (0x로 시작하는 42자리)"),
-				chain: z.enum(["base", "ethereum"]).default("base").describe("조회할 체인"),
+				chain: z
+					.enum(["base", "ethereum", "polygon", "arbitrum", "optimism", "avalanche"])
+					.default("base")
+					.describe("조회할 체인"),
 			},
 			{ readOnlyHint: true },
-			async ({ address, chain }: { address: string; chain: "base" | "ethereum" }) => {
+			async ({
+				address,
+				chain,
+			}: {
+				address: string;
+				chain: "base" | "ethereum" | "polygon" | "arbitrum" | "optimism" | "avalanche";
+			}) => {
 				const facts = await getWalletFacts(address, chain);
 				return { content: [{ type: "text", text: JSON.stringify(facts) }] };
 			}

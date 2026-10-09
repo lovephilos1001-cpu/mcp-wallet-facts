@@ -55,7 +55,7 @@ wrangler secret put CDP_API_KEY_SECRET
 | `list_supported_chains` | 조회 가능한 체인 목록 | 무료 |
 | `get_wallet_facts(address, chain)` | 지갑의 온체인 사실 조회 | $0.01 |
 
-지원 체인: `base`, `ethereum`
+지원 체인: `base`, `ethereum`, `polygon`, `arbitrum`, `optimism`, `avalanche` (전부 Circle 발행 네이티브 USDC만 사용 — 브릿지판 USDC.e 아님)
 
 ## 응답 예시
 
@@ -77,5 +77,7 @@ wrangler secret put CDP_API_KEY_SECRET
 
 ## 데이터 소스
 
-Base·Ethereum 공개 RPC(`mainnet.base.org`, `ethereum-rpc.publicnode.com`)에 직접 질의합니다.
+6개 체인 모두 공개 RPC에 직접 질의합니다(Base: `mainnet.base.org`, Ethereum:
+`ethereum-rpc.publicnode.com`, Polygon: `polygon-bor-rpc.publicnode.com`, Arbitrum:
+`arb1.arbitrum.io/rpc`, Optimism: `mainnet.optimism.io`, Avalanche: `api.avax.network`).
 API 키나 계정이 필요 없으며, 누구나 같은 데이터를 같은 방식으로 조회할 수 있습니다.

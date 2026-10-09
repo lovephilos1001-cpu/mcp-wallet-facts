@@ -35,11 +35,31 @@ mcp = MCPServer(
 RPC_ENDPOINTS = {
     "base": "https://mainnet.base.org",
     "ethereum": "https://ethereum-rpc.publicnode.com",
+    "polygon": "https://polygon-bor-rpc.publicnode.com",
+    "arbitrum": "https://arb1.arbitrum.io/rpc",
+    "optimism": "https://mainnet.optimism.io",
+    "avalanche": "https://api.avax.network/ext/bc/C/rpc",
 }
 
+# 네이티브(Circle 발행) USDC만 사용 — 브릿지판(USDC.e)은 별도 토큰이라 섞으면 안 됨.
+# 2026-10-09, 각 체인 공개 RPC로 eth_call(symbol()/decimals())까지 직접 호출해서 실제로
+# "USDC"/6자리인 것 확인 후 등록함(추측 금지 원칙 — CLAUDE.md와 동일 기준 적용).
 USDC_CONTRACTS = {
     "base": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
     "ethereum": "0xA0b86991c6218B36c1D19D4a2e9Eb0cE3606eB48",
+    "polygon": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+    "arbitrum": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+    "optimism": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+    "avalanche": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+}
+
+NATIVE_SYMBOLS = {
+    "base": "ETH",
+    "ethereum": "ETH",
+    "polygon": "POL",
+    "arbitrum": "ETH",
+    "optimism": "ETH",
+    "avalanche": "AVAX",
 }
 
 ADDRESS_RE = re.compile(r"^0x[0-9a-fA-F]{40}$")
@@ -105,7 +125,7 @@ def get_wallet_facts(address: str, chain: str = "base") -> dict:
 
     Args:
         address: 조회할 EVM 지갑 주소 (0x로 시작하는 42자리)
-        chain: "base" 또는 "ethereum" (기본값 "base")
+        chain: "base"/"ethereum"/"polygon"/"arbitrum"/"optimism"/"avalanche" (기본값 "base")
     """
     if not ADDRESS_RE.match(address):
         raise ToolError(f"유효하지 않은 EVM 주소 형식: {address}")
@@ -131,7 +151,7 @@ def get_wallet_facts(address: str, chain: str = "base") -> dict:
         "address": address,
         "chain": chain,
         "native_balance": native_wei / 1_000_000_000_000_000_000,
-        "native_symbol": "ETH",
+        "native_symbol": NATIVE_SYMBOLS[chain],
         "usdc_balance": usdc_raw / 1_000_000,
         "tx_count": tx_count,
         **code_facts,
